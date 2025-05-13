@@ -1,121 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Click the Circle Game</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-      background-color: #f0f0f0;
-    }
+const gameArea = document.getElementById('gameArea');
+const scoreBoard = document.getElementById('scoreBoard');
+const startBtn = document.getElementById('startBtn');
 
-    #gameArea {
-      position: relative;
-      width: 600px;
-      height: 400px;
-      background-color: white;
-      border: 2px solid #333;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
+let score = 0;
+let timeLeft = 30;
+let gameInterval;
+let timerInterval;
 
-    .circle {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background-color: crimson;
-      cursor: pointer;
-    }
+function spawnCircle() {
+  const circle = document.createElement('div');
+  circle.classList.add('circle');
 
-    #scoreBoard {
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
+  const maxX = gameArea.clientWidth - 50;
+  const maxY = gameArea.clientHeight - 50;
 
-    #startBtn {
-      padding: 10px 20px;
-      font-size: 18px;
-    }
-  </style>
-</head>
-<body>
+  const x = Math.random() * maxX;
+  const y = Math.random() * maxY;
 
-  <div id="scoreBoard">Score: 0 | Time: 30s</div>
-  <div id="gameArea"></div>
-  <button id="startBtn">Start Game</button>
+  circle.style.left = `${x}px`;
+  circle.style.top = `${y}px`;
 
-  <script>
-    const gameArea = document.getElementById('gameArea');
-    const scoreBoard = document.getElementById('scoreBoard');
-    const startBtn = document.getElementById('startBtn');
+  circle.onclick = function () {
+    score++;
+    updateScore();
+    gameArea.removeChild(circle);
+    spawnCircle();
+  };
 
-    let score = 0;
-    let timeLeft = 30;
-    let gameInterval;
-    let timerInterval;
+  gameArea.appendChild(circle);
+}
 
-    function spawnCircle() {
-      const circle = document.createElement('div');
-      circle.classList.add('circle');
+function updateScore() {
+  scoreBoard.textContent = `Score: ${score} | Time: ${timeLeft}s`;
+}
 
-      // Random position within game area
-      const maxX = gameArea.clientWidth - 50;
-      const maxY = gameArea.clientHeight - 50;
+function startGame() {
+  score = 0;
+  timeLeft = 30;
+  updateScore();
+  startBtn.disabled = true;
+  gameArea.innerHTML = '';
+  spawnCircle();
 
-      circle.style.left = Math.random() * maxX + 'px';
-      circle.style.top = Math.random() * maxY + 'px';
-
-      // On click, increase score and spawn a new circle
-      circle.onclick = function () {
-        score++;
-        updateScore();
-        gameArea.removeChild(circle);
-        spawnCircle();
-      };
-
-      gameArea.appendChild(circle);
-    }
-
-    function updateScore() {
-      scoreBoard.textContent = `Score: ${score} | Time: ${timeLeft}s`;
-    }
-
-    function startGame() {
-      score = 0;
-      timeLeft = 30;
-      updateScore();
-      startBtn.disabled = true;
-      gameArea.innerHTML = '';
+  gameInterval = setInterval(() => {
+    if (gameArea.children.length === 0) {
       spawnCircle();
-
-      gameInterval = setInterval(() => {
-        if (gameArea.children.length === 0) {
-          spawnCircle();
-        }
-      }, 1000);
-
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        updateScore();
-
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          clearInterval(gameInterval);
-          gameArea.innerHTML = '';
-          alert('Time up! Your final score: ' + score);
-          startBtn.disabled = false;
-        }
-      }, 1000);
     }
+  }, 1000);
 
-    startBtn.addEventListener('click', startGame);
-  </script>
-</body>
-</html>
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateScore();
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      clearInterval(gameInterval);
+      gameArea.innerHTML = '';
+      alert('Time up! Your final score: ' + score);
+      startBtn.disabled = false;
+    }
+  }, 1000);
+}
+
+startBtn.addEventListener('click', startGame);
